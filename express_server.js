@@ -23,13 +23,14 @@ app.get("/hello", (req, res) => {
   res.render("hello_world", templateVars);
 });
 
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>WORLD</b></body></html>\n")
-// });
-
 app.get("/urls", (req, res) => {
   const templateVals = { urls: urlDatabase };
   res.render("urls_index", templateVals);
+})
+
+app.get("/urls/:id", (req, res) => {
+  const templateVars = { id: req.params.id, longURL: href = "#" };
+  res.render("urls_show", templateVars);
 })
 
 app.listen(PORT, () => {
