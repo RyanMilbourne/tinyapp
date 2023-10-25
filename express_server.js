@@ -19,8 +19,18 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>WORLD</b></body></html>\n")
+  const templateVars = { greeting: "Hello Neo!" };
+  res.render("hello_world", templateVars);
 });
+
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>WORLD</b></body></html>\n")
+// });
+
+app.get("/urls", (req, res) => {
+  const templateVals = { urls: urlDatabase };
+  res.render("urls_index", templateVals);
+})
 
 app.listen(PORT, () => {
   console.log(`app listeing on port: ${PORT}`);
