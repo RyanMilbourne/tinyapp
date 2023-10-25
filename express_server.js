@@ -66,6 +66,13 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+app.post("/urls/:id/delete", (req, res) => {
+
+  delete urlDatabase[req.params.id];
+
+  res.redirect("/urls")
+})
+
 app.listen(PORT, () => {
   console.log(`app listeing on port: ${PORT}`);
 });
