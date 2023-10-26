@@ -98,6 +98,17 @@ app.post("/urls/:id", (req, res) => {
 
 })
 
+// for user login
+app.post("/login", (req, res) => {
+  // collect form input and assign to username
+  const username = req.body.username;
+  //save cookie, "Name" and "username"
+  res.cookie("user-name", username);
+
+  res.redirect("/urls")
+
+})
+
 app.listen(PORT, () => {
   console.log(`app listeing on port: ${PORT}`);
 });
