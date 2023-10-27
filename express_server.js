@@ -14,16 +14,22 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-// for user login
 app.post("/login", (req, res) => {
-  // collect form input and assign to username
-  const username = req.body.username;
-  //save cookie, "Name" and "username"
+
+  const { username } = req.body;
   res.cookie("username", username);
 
-  res.redirect("/urls")
+  res.redirect("/urls");
 
-})
+});
+
+app.post("/logout", (req, res) => {
+
+  res.clearCookie('username');
+
+  res.redirect("/urls");
+
+});
 
 const generateRandomString = function() {
   const char = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -36,7 +42,7 @@ const generateRandomString = function() {
   }
 
   return newString;
-}
+};
 
 app.get("/", (req, res) => {
   res.send("hello, user!");
@@ -63,13 +69,14 @@ app.get("/urls", (req, res) => {
   };
 
   res.render("urls_index", templateVals);
-})
+});
 
 app.get("/urls/new", (req, res) => {
 
+  const { username } = req.cookies;
   const templateVals = {
-    username: req.cookies["username"]
-  }
+    username
+  };
 
   res.render("urls_new", templateVals);
 
@@ -83,16 +90,15 @@ app.get("/urls/:id", (req, res) => {
     longURL: urlDatabase[req.params.id]
   };
   res.render("urls_show", templateVars);
-})
+});
 
-// for generating the shortURL
 app.post("/urls", (req, res) => {
 
   const shortURL = generateRandomString();
 
   urlDatabase[shortURL] = req.body["longURL"];
 
-  res.redirect(`/urls/${shortURL}`)
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/u/:id", (req, res) => {
@@ -102,15 +108,13 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
-// for deleting URL
 app.post("/urls/:id/delete", (req, res) => {
 
   delete urlDatabase[req.params.id];
 
-  res.redirect("/urls")
-})
+  res.redirect("/urls");
+});
 
-// for updating longURL
 app.post("/urls/:id", (req, res) => {
 
   const shortURL = req.params.id;
@@ -119,7 +123,7 @@ app.post("/urls/:id", (req, res) => {
 
   res.redirect("/urls");
 
-})
+});
 
 app.listen(PORT, () => {
   console.log(`app listeing on port: ${PORT}`);
