@@ -88,8 +88,6 @@ app.get("/urls/:id", (req, res) => {
 // for generating the shortURL
 app.post("/urls", (req, res) => {
 
-  // console.log(req.body);
-
   const shortURL = generateRandomString();
 
   urlDatabase[shortURL] = req.body["longURL"];
