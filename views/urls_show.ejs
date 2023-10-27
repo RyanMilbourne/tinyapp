@@ -29,6 +29,10 @@
           <button type="submit" class="btn btn-primary">Update</button>
         </form>
         <!--Update Form End-->
+        <% if (username) { %>
+          <p>Logged in as: <%= username %>
+          </p>
+          <% } %>
       </div>
     </div>
 
