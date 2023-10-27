@@ -25,6 +25,10 @@
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>
       </form>
+      <% if (username) { %>
+        <p>Logged in as: <%= username %>
+        </p>
+        <% } %>
     </main>
 
     <!-- Bootstrap JS -->
