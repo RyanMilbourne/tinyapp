@@ -61,6 +61,13 @@ const generateRandomString = function() {
   return newString;
 };
 
+const checkEmails = function(users, email) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+};
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Routes
 ////////////////////////////////////////////////////////////////////////////////
@@ -84,6 +91,10 @@ app.post("/register", (req, res) => {
   if (!email || !password) {
     return res.status(400).send("provide email/password");
   };
+
+  if (checkEmails(users, email)) {
+    return res.status(400).send("email already in use");
+  }
 
   const id = generateRandomString();
 
