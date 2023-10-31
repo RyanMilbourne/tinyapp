@@ -5,10 +5,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
+  <title>TinyApp</title>
+
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
     integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous" />
-  <title>TinyApp</title>
 </head>
 
 <body>
@@ -36,7 +37,7 @@
               <!--Edit Section Start-->
               <td>
                 <form method="GET" action="/urls/<%= id %>">
-                  <button type="submit" class="btn btn-primary">Edit</button>
+                  <button type="submit" class="btn btn-outline-primary">Edit</button>
                 </form>
               </td>
               <!--Edit Section End-->
@@ -44,7 +45,7 @@
               <!--Delete Section Start-->
               <td>
                 <form method="POST" action="/urls/<%= id %>/delete">
-                  <button type="submit" class="btn btn-primary">Delete</button>
+                  <button type="submit" class="btn btn-outline-danger">Delete</button>
                 </form>
               </td>
 
