@@ -86,6 +86,10 @@ app.get("/register", (req, res) => {
     user: null
   };
 
+  if (user_id) {
+    res.redirect('/urls')
+  }
+
   res.render("register", templateVars);
 
 });
@@ -116,11 +120,16 @@ app.get('/login', (req, res) => {
 
   const { user_id } = req.cookies;
 
+
   if (user_id) {
     const user = users[user_id];
     templateVars.user = user;
   } else {
     templateVars.user = null;
+  }
+
+  if (user_id) {
+    res.redirect('/urls')
   }
 
   res.render('login', templateVars);
