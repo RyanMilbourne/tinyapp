@@ -42,7 +42,7 @@ const users = {
     email: "admin@admin.com",
     password: "admin"
   }
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Functions
@@ -67,7 +67,9 @@ const getUserByEmail = function(users, email) {
       return users[user];
     }
   }
+
   return null;
+
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,7 +94,7 @@ app.post("/register", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).send("provide email/password");
-  };
+  }
 
   if (getUserByEmail(users, email)) {
     return res.status(400).send("email already in use");
@@ -105,9 +107,7 @@ app.post("/register", (req, res) => {
   };
 
   res.cookie("user_id", id);
-
-
-  res.redirect('/urls')
+  res.redirect('/urls');
 
 });
 
@@ -123,37 +123,31 @@ app.get('/login', (req, res) => {
     templateVars.user = null;
   }
 
-  res.render('login', templateVars)
+  res.render('login', templateVars);
 
-})
+});
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
   const user = getUserByEmail(users, email);
 
-  // confirm email exists in database
   if (!user) {
     return res.status(403).send("account does not exist in our database");
   }
 
-  // confirm if inputed email matches corresponding database password
   if (user.password !== password) {
     return res.status(403).send("invalid password");
   }
 
-
   res.cookie("user_id", user.id);
-
-  res.redirect('/urls')
-
+  res.redirect('/urls');
 
 });
 
 app.post("/logout", (req, res) => {
 
   res.clearCookie('user_id');
-
   res.redirect("/login");
 
 });
@@ -175,6 +169,7 @@ app.get("/hello", (req, res) => {
   const templateVars = { greeting: "Hello Neo!" };
 
   res.render("hello_world", templateVars);
+
 });
 
 app.get("/urls", (req, res) => {
@@ -194,18 +189,19 @@ app.get("/urls", (req, res) => {
   };
 
   res.render("urls_index", templateVals);
+
 });
 
 app.get("/urls/new", (req, res) => {
   const { user_id } = req.cookies;
   if (!user_id) {
     return res.status(400).send("Please login");
-  };
+  }
 
   const user = users[user_id];
   if (!user) {
     return res.status(400).send("invalid user");
-  };
+  }
 
   const templateVals = {
     user
@@ -219,12 +215,12 @@ app.get("/urls/:id", (req, res) => {
   const { user_id } = req.cookies;
   if (!user_id) {
     return res.status(400).send("Please login");
-  };
+  }
 
   const user = users[user_id];
   if (!user) {
     return res.status(400).send("invalid user");
-  };
+  }
 
   const templateVars = {
     user,
