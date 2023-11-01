@@ -184,7 +184,7 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const { user_id } = req.cookies;
   if (!user_id) {
-    return res.status(400).send("You must be logged in to create a tinyUrl");
+    return res.status(401).send("You must be logged in to create a tinyUrl");
   }
 
   const user = users[user_id];
@@ -246,7 +246,7 @@ app.post("/urls", (req, res) => {
   const { user_id } = req.cookies;
 
   if (!user_id) {
-    return res.send("You must be logged in to manage tinyUrls");
+    return res.status(401).send("You must be logged in to manage tinyUrls");
   }
 
   const shortURL = generateRandomString();
