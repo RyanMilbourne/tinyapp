@@ -61,13 +61,15 @@ const generateRandomString = function() {
   return newString;
 };
 
-const checkEmails = function(users, email) {
+const getUserByEmail = function(users, email) {
   for (const user in users) {
     if (users[user].email === email) {
-      return true;
+      return users[user];
     }
   }
+  return null;
 };
+
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Routes
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,7 +94,7 @@ app.post("/register", (req, res) => {
     return res.status(400).send("provide email/password");
   };
 
-  if (checkEmails(users, email)) {
+  if (getUserByEmail(users, email)) {
     return res.status(400).send("email already in use");
   }
 
@@ -126,20 +128,33 @@ app.get('/login', (req, res) => {
 })
 
 app.post("/login", (req, res) => {
+  const { email, password } = req.body;
 
-  const { username } = req.body;
+  const user = getUserByEmail(users, email);
 
-  res.cookie("username", username);
+  // confirm email exists in database
+  if (!user) {
+    return res.status(403).send("account does not exist in our database");
+  }
 
-  res.redirect("/urls");
+  // confirm if inputed email matches corresponding database password
+  if (user.password !== password) {
+    return res.status(403).send("invalid password");
+  }
+
+
+  res.cookie("user_id", user.id);
+
+  res.redirect('/urls')
+
 
 });
 
 app.post("/logout", (req, res) => {
 
-  res.clearCookie('username');
+  res.clearCookie('user_id');
 
-  res.redirect("/urls");
+  res.redirect("/login");
 
 });
 
