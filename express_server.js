@@ -184,7 +184,7 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   const { user_id } = req.cookies;
   if (!user_id) {
-    return res.status(400).send("Please login");
+    return res.status(400).send("You must be logged in to create a tinyUrl");
   }
 
   const user = users[user_id];
@@ -204,6 +204,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const { user_id } = req.cookies;
   if (!user_id) {
+    res.redirect('/login')
     return res.status(400).send("Please login");
   }
 
@@ -242,6 +243,11 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  const { user_id } = req.cookies;
+
+  if (!user_id) {
+    return res.send("You must be logged in to manage tinyUrls");
+  }
 
   const shortURL = generateRandomString();
 
@@ -254,6 +260,10 @@ app.post("/urls", (req, res) => {
 app.get("/u/:id", (req, res) => {
 
   const longURL = urlDatabase[req.params.id];
+
+  if (!longURL) {
+    return res.send("This tinyUrl does not exist");
+  }
 
   res.redirect(longURL);
 
