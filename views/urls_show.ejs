@@ -22,13 +22,14 @@
         </p>
       </div>
       <div class="card-footer text-muted">
-        <!--Update Form Begin-->
         <form method="POST" action="/urls/<%= id %>">
           <h6>Edit the URL</h6>
           <input type="text" name="updatedURL" value="<%= longURL %>">
           <button type="submit" class="btn btn-primary">Update</button>
         </form>
-        <!--Update Form End-->
+      </div>
+      <div style="margin-top: 10px; margin-bottom: 10px;">
+        <a href="/urls">view my urls!</a>
       </div>
     </div>
 
