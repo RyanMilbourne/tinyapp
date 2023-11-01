@@ -262,7 +262,7 @@ app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
 
   if (!longURL) {
-    return res.send("This tinyUrl does not exist");
+    return res.status(404).send("This tinyUrl does not exist");
   }
 
   res.redirect(longURL);
