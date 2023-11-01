@@ -110,8 +110,18 @@ app.post("/register", (req, res) => {
 });
 
 app.get('/login', (req, res) => {
+  const templateVars = {};
 
-  res.render('login')
+  const { user_id } = req.cookies;
+
+  if (user_id) {
+    const user = users[user_id];
+    templateVars.user = user;
+  } else {
+    templateVars.user = null;
+  }
+
+  res.render('login', templateVars)
 
 })
 
