@@ -1,5 +1,5 @@
 // npm innit
-// npm install express cookie-parser morgan ejs
+// npm install express cookie-parser morgan ejs bcryptjs
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Requires / Packages
@@ -9,6 +9,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const { cookie } = require('request');
+const bcrypt = require('bcryptjs');
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Setup / Config
@@ -94,6 +95,7 @@ const urlsForUser = function(id) {
 
 app.get("/register", (req, res) => {
   const user_id = req.cookies["user_id"];
+
   if (user_id) {
     return res.redirect("/urls");
   }
@@ -112,6 +114,7 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10);
   if (!email || !password) {
     return res.status(400).send("provide email/password");
   }
@@ -123,7 +126,7 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
 
   users[id] = {
-    id, email, password
+    id, email, hashedPassword
   };
 
   res.cookie("user_id", id);
@@ -153,17 +156,17 @@ app.get('/login', (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const user = getUserByEmail(users, email);
 
   if (!user) {
     return res.status(403).send("account does not exist in our database");
   }
 
-  if (user.password !== password) {
+  if (!bcrypt.compareSync(password, hashedPassword)) {
     return res.status(403).send("invalid password");
   }
-  console.log("Testing POST /login ", user);
+
   res.cookie("user_id", user.id);
   res.redirect('/urls');
 
