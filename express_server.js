@@ -32,8 +32,14 @@ app.use(cookieParser());
 ////////////////////////////////////////////////////////////////////////////////
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -214,7 +220,8 @@ app.get("/urls/new", (req, res) => {
   }
 
   const templateVals = {
-    user
+    user,
+    urls: urlDatabase
   };
 
   res.render("urls_new", templateVals);
@@ -231,11 +238,10 @@ app.get("/urls/:id", (req, res) => {
   if (!user) {
     return res.status(400).send("invalid user");
   }
-
   const templateVars = {
     user,
     id: req.params.id,
-    longURL: urlDatabase[req.params.id]
+    longURL: urlDatabase[req.params.id].longURL
   };
 
   res.render("urls_show", templateVars);
@@ -251,15 +257,16 @@ app.post("/urls", (req, res) => {
 
   const shortURL = generateRandomString();
 
-  urlDatabase[shortURL] = req.body["longURL"];
+  urlDatabase[shortURL] = { longURL: req.body["longURL"], userID: user_id };
 
   res.redirect(`/urls/${shortURL}`);
 
 });
 
 app.get("/u/:id", (req, res) => {
-
-  const longURL = urlDatabase[req.params.id];
+  const { user_id } = req.cookies;
+  const shortURL = req.params.id;
+  const longURL = urlDatabase[shortURL].longURL;
 
   if (!longURL) {
     return res.status(404).send("This tinyUrl does not exist");
@@ -281,7 +288,8 @@ app.post("/urls/:id", (req, res) => {
 
   const shortURL = req.params.id;
   const updatedURL = req.body.updatedURL;
-  urlDatabase[shortURL] = updatedURL;
+  const longURL = urlDatabase[shortURL].longURL;
+  urlDatabase[shortURL].longURL = updatedURL;
 
   res.redirect("/urls");
 
