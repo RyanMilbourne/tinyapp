@@ -78,12 +78,22 @@ const getUserByEmail = function(users, email) {
 
 };
 
+const urlsForUser = function(id) {
+  let urls = {};
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      urls[url] = urlDatabase[url];
+    }
+  }
+  return urls;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Routes
 ////////////////////////////////////////////////////////////////////////////////
 
 app.get("/register", (req, res) => {
-  const { user_id } = req.cookies;
+  const user_id = req.cookies["user_id"];
   if (user_id) {
     return res.redirect("/urls");
   }
@@ -124,8 +134,7 @@ app.post("/register", (req, res) => {
 app.get('/login', (req, res) => {
   const templateVars = {};
 
-  const { user_id } = req.cookies;
-
+  const user_id = req.cookies["user_id"];
 
   if (user_id) {
     const user = users[user_id];
@@ -154,7 +163,7 @@ app.post("/login", (req, res) => {
   if (user.password !== password) {
     return res.status(403).send("invalid password");
   }
-
+  console.log("Testing POST /login ", user);
   res.cookie("user_id", user.id);
   res.redirect('/urls');
 
@@ -188,7 +197,9 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const { user_id } = req.cookies;
+  const user_id = req.cookies["user_id"];
+  const userUrls = urlsForUser(user_id);
+
   if (!user_id) {
     return res.status(401).send("You must be logged in to create a tinyUrl");
   }
@@ -200,7 +211,7 @@ app.get("/urls", (req, res) => {
 
   const templateVals = {
     user,
-    urls: urlDatabase
+    urls: userUrls
   };
 
   res.render("urls_index", templateVals);
@@ -208,13 +219,14 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const { user_id } = req.cookies;
+  const user_id = req.cookies["user_id"];
   if (!user_id) {
     res.redirect('/login')
     return res.status(400).send("Please login");
   }
 
   const user = users[user_id];
+
   if (!user) {
     return res.status(400).send("invalid user");
   }
@@ -229,19 +241,26 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const { user_id } = req.cookies;
+  const user_id = req.cookies["user_id"];
+  const userUrls = urlsForUser(user_id);
+  const user = users[user_id];
+
   if (!user_id) {
     return res.status(400).send("Please login");
   }
 
-  const user = users[user_id];
   if (!user) {
     return res.status(400).send("invalid user");
   }
+
+  if (urlDatabase[req.params.id].userID !== user_id) {
+    res.status(400).send("The url does not belong to you")
+  }
+
   const templateVars = {
     user,
     id: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL
+    longURL: userUrls[req.params.id].longURL
   };
 
   res.render("urls_show", templateVars);
@@ -249,7 +268,7 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const { user_id } = req.cookies;
+  const user_id = req.cookies["user_id"];
 
   if (!user_id) {
     return res.status(401).send("You must be logged in to manage tinyUrls");
@@ -264,7 +283,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const { user_id } = req.cookies;
+  const user_id = req.cookies["user_id"];
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL].longURL;
 
@@ -277,6 +296,16 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
+  const user_id = req.cookies["user_id"];
+  const user = users[user_id];
+
+  if (!user_id) {
+    return res.status(400).send("Please login");
+  }
+
+  if (!user) {
+    return res.status(400).send("invalid user");
+  }
 
   delete urlDatabase[req.params.id];
 
@@ -285,12 +314,19 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-
+  const user_id = req.cookies["user_id"];
+  const user = users[user_id];
   const shortURL = req.params.id;
   const updatedURL = req.body.updatedURL;
-  const longURL = urlDatabase[shortURL].longURL;
   urlDatabase[shortURL].longURL = updatedURL;
 
+  if (!user_id) {
+    return res.status(400).send("Please login");
+  }
+
+  if (!user) {
+    return res.status(400).send("invalid user");
+  }
   res.redirect("/urls");
 
 });
