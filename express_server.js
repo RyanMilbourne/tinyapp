@@ -1,5 +1,5 @@
 // npm innit
-// npm install express cookie-parser morgan ejs bcryptjs cookie-session mocha chai
+// npm install express cookie-parser ejs bcryptjs cookie-session mocha chai
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Requires / Packages
@@ -8,7 +8,6 @@
 const express = require('express');
 const cookieSession = require('cookie-session');
 const helpers = require('./helpers');
-const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +205,7 @@ app.get("/urls/new", (req, res) => {
   const user = database[user_id];
 
   if (!user_id) {
-    res.redirect('/login')
+    res.redirect('/login');
     return res.status(400).send("Please login");
   } else if (user.id !== req.session.user_id) {
     return res.status(400).send("invalid user");
@@ -257,7 +256,6 @@ app.post("/urls", (req, res) => {
 
 // shortURL link
 app.get("/u/:id", (req, res) => {
-  const user_id = req.session.user_id;
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL].longURL;
 
