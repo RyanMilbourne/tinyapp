@@ -9,7 +9,6 @@ const express = require('express');
 const cookieSession = require('cookie-session');
 const helpers = require('./helpers');
 const morgan = require('morgan');
-const { cookie } = require('request');
 const bcrypt = require('bcryptjs');
 
 ////////////////////////////////////////////////////////////////////////////////
