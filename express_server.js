@@ -1,5 +1,5 @@
 // npm innit
-// npm install express cookie-parser morgan ejs bcryptjs cookie-session
+// npm install express cookie-parser morgan ejs bcryptjs cookie-session mocha chai
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Requires / Packages
@@ -7,7 +7,7 @@
 
 const express = require('express');
 const cookieSession = require('cookie-session');
-// const cookieParser = require('cookie-parser');
+const helpers = require('./helpers');
 const morgan = require('morgan');
 const { cookie } = require('request');
 const bcrypt = require('bcryptjs');
@@ -26,8 +26,6 @@ const PORT = 8080;
 app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
-
-// app.use(cookieParser());
 
 app.use(cookieSession({
   name: "user_id",
@@ -54,7 +52,7 @@ const urlDatabase = {
   }
 };
 
-const users = {
+const database = {
   admin: {
     id: "admin",
     email: "admin@admin.com",
@@ -79,16 +77,16 @@ const generateRandomString = function() {
   return newString;
 };
 
-const getUserByEmail = function(users, email) {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
-    }
-  }
+// const getUserByEmail = function(database, email) {
+//   for (const user in database) {
+//     if (database[user].email === email) {
+//       return database[user];
+//     }
+//   }
 
-  return null;
+//   return null;
 
-};
+// };
 
 const urlsForUser = function(id) {
   let urls = {};
@@ -132,14 +130,14 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
   if (!email || !password) {
     return res.status(400).send("provide email/password");
-  } else if (getUserByEmail(users, email)) {
+  } else if (helpers.getUserByEmail(database, email)) {
     return res.status(400).send("email already in use");
   }
   const id = generateRandomString();
   const user = {
     id, email, hashedPassword
   };
-  users[id] = {
+  database[id] = {
     id, email, hashedPassword
   };
 
@@ -166,7 +164,7 @@ app.get('/login', (req, res) => {
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 10);
-  const user = getUserByEmail(users, email);
+  const user = helpers.getUserByEmail(database, email);
 
   if (!user) {
     return res.status(403).send("account does not exist in our database");
@@ -203,9 +201,8 @@ app.get("/urls", (req, res) => {
   if (!user_id) {
     return res.status(401).send("You must be logged in to create a tinyUrl");
   } else {
-    console.log("USER ID in get urls", user_id);
     const userUrls = urlsForUser(user_id);
-    const user = users[user_id];
+    const user = database[user_id];
     const templateVals = {
       user,
       urls: userUrls
@@ -218,7 +215,7 @@ app.get("/urls", (req, res) => {
 // create new urls page
 app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
-  const user = users[user_id];
+  const user = database[user_id];
 
   if (!user_id) {
     res.redirect('/login')
@@ -238,7 +235,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
   const userUrls = urlsForUser(user_id);
-  const user = users[user_id];
+  const user = database[user_id];
 
   if (!user_id) {
     return res.status(400).send("Please login");
@@ -272,7 +269,6 @@ app.post("/urls", (req, res) => {
 
 // shortURL link
 app.get("/u/:id", (req, res) => {
-  // const user_id = req.cookies["user_id"];
   const user_id = req.session.user_id;
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL].longURL;
@@ -288,7 +284,7 @@ app.get("/u/:id", (req, res) => {
 // shortURL delete request
 app.post("/urls/:id/delete", (req, res) => {
   const user_id = req.session.user_id;
-  const user = users[user_id];
+  const user = database[user_id];
 
   if (!user_id) {
     return res.status(400).send("Please login");
@@ -304,7 +300,7 @@ app.post("/urls/:id/delete", (req, res) => {
 // shortURL manage & requests
 app.post("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
-  const user = users[user_id];
+  const user = database[user_id];
   const shortURL = req.params.id;
   const updatedURL = req.body.updatedURL;
   urlDatabase[shortURL].longURL = updatedURL;
