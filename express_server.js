@@ -76,17 +76,6 @@ const generateRandomString = function() {
   return newString;
 };
 
-// const getUserByEmail = function(database, email) {
-//   for (const user in database) {
-//     if (database[user].email === email) {
-//       return database[user];
-//     }
-//   }
-
-//   return null;
-
-// };
-
 const urlsForUser = function(id) {
   let urls = {};
   for (const url in urlDatabase) {
