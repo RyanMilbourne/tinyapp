@@ -1,5 +1,5 @@
 // npm innit
-// npm install express cookie-parser ejs bcryptjs cookie-session mocha chai
+// npm install express ejs bcryptjs cookie-session mocha chai
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Requires / Packages
