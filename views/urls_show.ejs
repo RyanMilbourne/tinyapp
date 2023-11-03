@@ -15,6 +15,9 @@
       <div class="card-body">
         <h5 class="card-title">TinyURL for: <%= longURL %>
         </h5>
+        <p class="card-text">Short URL link: <a href="http://localhost:8080/u/<%= id %>" class="text-primary">
+            tinyApp/u/<%= id %></a>
+        </p>
         <p class="card-text">
           Short URL ID: <a href="/u/<%= id %>">
             <%= id %>
@@ -28,11 +31,10 @@
           <button type="submit" class="btn btn-primary">Update</button>
         </form>
       </div>
-      <div style="margin-top: 10px; margin-bottom: 10px;">
-        <a href="/urls">view my urls!</a>
-      </div>
     </div>
-
+    <div class="text-center" style="margin-top: 3rem">
+      <a href="/urls">view my urls!</a>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

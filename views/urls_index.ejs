@@ -28,11 +28,13 @@
         <tbody>
           <% for (let id in urls) { %>
             <tr>
-              <td>
+              <td class="align-middle">
                 <%= id %>
+
               </td>
-              <td>
-                <%= urls[id].longURL %>
+              <td class="align-middle">
+                <a href="/u/<%= id %>" class="text-primary">
+                  <%= urls[id].longURL %>
               </td>
               <!--Edit Section Start-->
               <td>
@@ -41,14 +43,12 @@
                 </form>
               </td>
               <!--Edit Section End-->
-
               <!--Delete Section Start-->
               <td>
                 <form method="POST" action="/urls/<%= id %>/delete">
                   <button type="submit" class="btn btn-outline-danger">Delete</button>
                 </form>
               </td>
-
               <!--Delete Section End-->
               <% } %>
         </tbody>
