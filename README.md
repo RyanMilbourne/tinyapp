@@ -39,15 +39,11 @@ To get started with Tiny App, follow these steps:
    ```shell
    node express_server.js
    ```
-4. Run npm start to have server listen to port 8080
-   ```shell
-   npm start
-   ```
-5. In your browser, go to:
+4. In your browser, go to:
    ```shell
    http://localhost:8080/register
    ```
-6. Create an account (or login to an existing account) and start making big urls tiny!
+5. Create an account (or login to an existing account) and start making big urls tiny!
 
 ---------------
 
