@@ -6,7 +6,6 @@ const getUserByEmail = function(database, email) {
   }
 
   return null;
-
 };
 
 const generateRandomString = function() {
