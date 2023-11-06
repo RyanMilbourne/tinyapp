@@ -7,7 +7,7 @@
 
 const express = require('express');
 const cookieSession = require('cookie-session');
-const helpers = require('./helpers');
+const { getUserByEmail, generateRandomString } = require('./helpers');
 const bcrypt = require('bcryptjs');
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,18 +62,6 @@ const database = {
 /////////// Functions
 ////////////////////////////////////////////////////////////////////////////////
 
-const generateRandomString = function() {
-  const char = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-  let newString = '';
-
-  for (let i = 0; i < 6; i++) {
-    const values = Math.floor(Math.random() * char.length);
-    newString += char[values];
-  }
-
-  return newString;
-};
 
 const urlsForUser = function(id) {
   let urls = {};
@@ -89,14 +77,18 @@ const urlsForUser = function(id) {
 /////////// Routes
 ////////////////////////////////////////////////////////////////////////////////
 
-// default page reroute to urls index
+/*
+ default page reroute to urls index
+ * */
 app.get("/", (req, res) => {
 
-  res.redirect(`/urls`);
+  res.redirect(`/login`);
 
 });
 
-// register page
+/*
+ register page
+ */
 app.get("/register", (req, res) => {
   const user_id = req.session.user_id;
 
@@ -111,29 +103,34 @@ app.get("/register", (req, res) => {
 
 });
 
-// register submission
+/*
+ register submission
+ */
 app.post("/register", (req, res) => {
-  const { email, password } = req.body;
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  const { email } = req.body;
+  const password = bcrypt.hashSync(req.body.password, 10)
+  // const hashedPassword = bcrypt.hashSync(password, 10);
   if (!email || !password) {
     return res.status(400).send("provide email/password");
-  } else if (helpers.getUserByEmail(database, email)) {
+  } else if (getUserByEmail(database, email)) {
     return res.status(400).send("email already in use");
   }
   const id = generateRandomString();
   const user = {
-    id, email, hashedPassword
-  };
-  database[id] = {
-    id, email, hashedPassword
+    id, email, password
   };
 
-  req.session.user_id = user.id; // set the cookie
+  database[id] = user
+
+  console.log(database)
+  req.session.user_id = user.id;
   res.redirect('/urls');
 
 });
 
-// login page
+/*
+ login page
+ */
 app.get('/login', (req, res) => {
   const templateVars = {};
   const user_id = req.session.user_id;
@@ -147,16 +144,17 @@ app.get('/login', (req, res) => {
 
 });
 
-// login submission
+/*
+ login submission
+ */
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  const user = helpers.getUserByEmail(database, email);
+  const user = getUserByEmail(database, email);
 
   if (!user) {
     return res.status(403).send("account does not exist in our database");
   } else {
-    if (!bcrypt.compareSync(password, hashedPassword)) {
+    if (!bcrypt.compareSync(password, user.password)) {
       return res.status(403).send("username or password invalid.");
     } else {
       req.session.user_id = user.id;
@@ -165,7 +163,9 @@ app.post("/login", (req, res) => {
   }
 });
 
-// logout request
+/*
+ logout request
+ */
 app.post("/logout", (req, res) => {
 
   req.session.user_id = null;
@@ -174,14 +174,9 @@ app.post("/logout", (req, res) => {
 
 });
 
-
-app.get("/urls.json", (req, res) => {
-
-  res.json(urlDatabase);
-
-});
-
-// urls index page
+/*
+ urls index page
+ */
 app.get("/urls", (req, res) => {
   const user_id = req.session.user_id;
 
@@ -199,7 +194,9 @@ app.get("/urls", (req, res) => {
 
 });
 
-// create new urls page
+/*
+ create new urls page
+ */
 app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
   const user = database[user_id];
@@ -218,7 +215,9 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-// shortURL page
+/*
+ shortURL page
+ */
 app.get("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
   const userUrls = urlsForUser(user_id);
@@ -240,7 +239,9 @@ app.get("/urls/:id", (req, res) => {
   }
 });
 
-// urls index manage & requests (edit / delete)
+/*
+urls index manage & requests (edit / delete)
+ */
 app.post("/urls", (req, res) => {
   const user_id = req.session.user_id;
 
@@ -254,7 +255,9 @@ app.post("/urls", (req, res) => {
 
 });
 
-// shortURL link
+/*
+ shortURL link
+ */
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = urlDatabase[shortURL].longURL;
@@ -267,7 +270,9 @@ app.get("/u/:id", (req, res) => {
 
 });
 
-// shortURL delete request
+/*
+shortURL delete request
+ */
 app.post("/urls/:id/delete", (req, res) => {
   const user_id = req.session.user_id;
   const user = database[user_id];
@@ -283,7 +288,9 @@ app.post("/urls/:id/delete", (req, res) => {
 
 });
 
-// shortURL manage & requests
+/*
+ shortURL manage & requests
+ */
 app.post("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
   const user = database[user_id];
