@@ -7,7 +7,7 @@
 
 const express = require('express');
 const cookieSession = require('cookie-session');
-const { getUserByEmail, generateRandomString } = require('./helpers');
+const { getUserByEmail, generateRandomString, urlsForUser } = require('./helpers');
 const bcrypt = require('bcryptjs');
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,21 +56,6 @@ const database = {
     email: "admin@admin.com",
     password: "admin"
   }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-/////////// Functions
-////////////////////////////////////////////////////////////////////////////////
-
-
-const urlsForUser = function(id) {
-  let urls = {};
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      urls[url] = urlDatabase[url];
-    }
-  }
-  return urls;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -182,7 +167,7 @@ app.get("/urls", (req, res) => {
   if (!user_id) {
     return res.status(401).send("You must be logged in to create a tinyUrl");
   } else {
-    const userUrls = urlsForUser(user_id);
+    const userUrls = urlsForUser(user_id, urlDatabase);
     const user = database[user_id];
     const templateVals = {
       user,
@@ -219,7 +204,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
   const id = req.params.id;
-  const userUrls = urlsForUser(user_id);
+  const userUrls = urlsForUser(user_id, urlDatabase);
   const user = database[user_id];
   const longURL = userUrls[id].longURL;
 
@@ -252,7 +237,7 @@ app.post("/urls", (req, res) => {
   } else {
     const shortURL = generateRandomString();
     urlDatabase[shortURL] = { longURL: req.body["longURL"], userID: user_id };
-    res.redirect(`/urls/${shortURL}`);
+    res.redirect(`/urls`);
   }
 
 });
@@ -262,8 +247,11 @@ app.post("/urls", (req, res) => {
  */
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
-  const longURL = urlDatabase[shortURL].longURL;
+  if (!urlDatabase[shortURL]) {
+    return res.status(404).send("This tinyUrl does not exist");
+  }
 
+  const longURL = urlDatabase[shortURL].longURL;
   if (!longURL) {
     return res.status(404).send("This tinyUrl does not exist");
   }
@@ -277,14 +265,15 @@ shortURL delete request
  */
 app.post("/urls/:id/delete", (req, res) => {
   const user_id = req.session.user_id;
+  const id = req.params.id;
   const user = database[user_id];
 
   if (!user_id) {
     return res.status(400).send("Please login");
-  } else if (user.id !== req.session.user_id) {
+  } else if (user.id !== user_id) {
     return res.status(400).send("invalid user");
   } else {
-    delete urlDatabase[req.params.id];
+    delete urlDatabase[id];
     res.redirect("/urls");
   }
 
