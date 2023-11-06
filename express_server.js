@@ -94,7 +94,7 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const { email } = req.body;
   const password = bcrypt.hashSync(req.body.password, 10)
-  // const hashedPassword = bcrypt.hashSync(password, 10);
+
   if (!email || !password) {
     return res.status(400).send("provide email/password");
   } else if (getUserByEmail(database, email)) {
@@ -133,6 +133,10 @@ app.get('/login', (req, res) => {
  */
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
+  if (!email || !password) {
+    res.status(400).send("please enter a valid username & password");
+  }
+
   const user = getUserByEmail(database, email);
 
   if (!user) {
@@ -203,19 +207,26 @@ app.get("/urls/new", (req, res) => {
  */
 app.get("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
+  if (!user_id) {
+    return res.status(400).send("Please login");
+  }
+
   const id = req.params.id;
   const userUrls = urlsForUser(user_id, urlDatabase);
   const user = database[user_id];
+
+  if (!userUrls[id]) {
+    res.status(403).send("Access Denied");
+  }
+
   const longURL = userUrls[id].longURL;
 
-  if (!user_id) {
-    return res.status(400).send("Please login");
-  } else if (!urlDatabase[id]) {
+  if (!urlDatabase[id]) {
     res.status(404).send("tinyApp URL does not exist");
-  } else if (user.id !== req.session.user_id) {
+  } else if (user.id !== user_id) {
     return res.status(400).send("invalid user");
   } else if (urlDatabase[id].userID !== user_id) {
-    res.status(400).send("The url does not belong to you");
+    res.status(403).send("Access Denied");
   } else {
     const templateVars = {
       user,
@@ -290,7 +301,7 @@ app.post("/urls/:id", (req, res) => {
   urlDatabase[shortURL].longURL = updatedURL;
 
   if (user_id !== req.session.user_id) {
-    return res.status(400).send("Please login");
+    return res.status(400).send("Please login to tinyApp");
   } else if (user.id !== req.session.user_id) {
     return res.status(400).send("invalid user");
   }
