@@ -1,4 +1,4 @@
-// npm innit
+// npm init
 // npm install express ejs bcryptjs cookie-session mocha chai
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,36 +27,17 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieSession({
   name: "user_id",
-  keys: ["this-is-a-secret-key"],
+  keys: ["this-is-a-not-so-secret-key"],
   maxAge: 24 * 60 * 60 * 1000
-}))
+}));
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////// "Database"
 ////////////////////////////////////////////////////////////////////////////////
 
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
-  },
-  adminTest: {
-    longURL: "admin-Long-URL",
-    userID: "admin"
-  }
-};
+const urlDatabase = {};
 
-const database = {
-  admin: {
-    id: "admin",
-    email: "admin@admin.com",
-    password: "admin"
-  }
-};
+const database = {};
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////// Routes
@@ -79,12 +60,13 @@ app.get("/register", (req, res) => {
 
   if (user_id) {
     return res.redirect("/urls");
-  } else {
-    const templateVars = {
-      user: null
-    };
-    res.render("register", templateVars);
   }
+
+  const templateVars = {
+    user: null
+  };
+
+  res.render("register", templateVars);
 
 });
 
@@ -92,20 +74,28 @@ app.get("/register", (req, res) => {
  register submission
  */
 app.post("/register", (req, res) => {
-  const { email } = req.body;
-  const password = bcrypt.hashSync(req.body.password, 10)
+  const email = req.body.email;
+  const inputedPassword = req.body.password;
+
+  if (!inputedPassword) {
+    return res.status(400).send("provide a password");
+  }
+
+  const password = bcrypt.hashSync(inputedPassword, 10);
 
   if (!email || !password) {
     return res.status(400).send("provide email/password");
   } else if (getUserByEmail(database, email)) {
     return res.status(400).send("email already in use");
   }
+
   const id = generateRandomString();
+
   const user = {
     id, email, password
   };
 
-  database[id] = user
+  database[id] = user;
 
   req.session.user_id = user.id;
   res.redirect('/urls');
@@ -141,14 +131,15 @@ app.post("/login", (req, res) => {
 
   if (!user) {
     return res.status(403).send("account does not exist in our database");
-  } else {
-    if (!bcrypt.compareSync(password, user.password)) {
-      return res.status(403).send("username or password invalid.");
-    } else {
-      req.session.user_id = user.id;
-      res.redirect('/urls');
-    }
   }
+
+  if (!bcrypt.compareSync(password, user.password)) {
+    return res.status(403).send("username or password invalid.");
+  }
+
+  req.session.user_id = user.id;
+  res.redirect('/urls');
+
 });
 
 /*
@@ -163,22 +154,27 @@ app.post("/logout", (req, res) => {
 });
 
 /*
- urls index page
+urls index page
  */
 app.get("/urls", (req, res) => {
   const user_id = req.session.user_id;
-
   if (!user_id) {
     return res.status(401).send("You must be logged in to create a tinyUrl");
-  } else {
-    const userUrls = urlsForUser(user_id, urlDatabase);
-    const user = database[user_id];
-    const templateVals = {
-      user,
-      urls: userUrls
-    };
-    res.render("urls_index", templateVals);
   }
+
+  const user = database[user_id];
+  if (!user) {
+    return res.status(403).send("Access denied");
+  }
+
+  const userUrls = urlsForUser(user_id, urlDatabase);
+
+  const templateVals = {
+    user,
+    urls: userUrls
+  };
+
+  res.render("urls_index", templateVals);
 
 });
 
@@ -187,19 +183,26 @@ app.get("/urls", (req, res) => {
  */
 app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
-  const user = database[user_id];
-
   if (!user_id) {
     res.redirect('/login');
-  } else if (user.id !== req.session.user_id) {
-    return res.status(400).send("invalid user");
-  } else {
-    const templateVals = {
-      user,
-      urls: urlDatabase
-    };
-    res.render("urls_new", templateVals);
   }
+
+  const user = database[user_id];
+  if (!user) {
+    return res.status(403).send("Access denied");
+  }
+
+  if (user.id !== req.session.user_id) {
+    return res.status(400).send("invalid user");
+  }
+
+  const templateVals = {
+    user,
+    urls: urlDatabase
+  };
+
+  res.render("urls_new", templateVals);
+
 });
 
 /*
@@ -211,30 +214,42 @@ app.get("/urls/:id", (req, res) => {
     return res.status(400).send("Please login");
   }
 
-  const id = req.params.id;
-  const userUrls = urlsForUser(user_id, urlDatabase);
   const user = database[user_id];
+  if (!user) {
+    return res.status(403).send("Access denied");
+  }
 
+  const id = req.params.id;
+  if (!id) {
+    return res.status(404).send("This tinyUrl does not exist");
+  }
+
+  const userUrls = urlsForUser(user_id, urlDatabase);
   if (!userUrls[id]) {
-    res.status(403).send("Access Denied");
+    return res.status(403).send("Access denied");
   }
 
   const longURL = userUrls[id].longURL;
+  if (!userUrls[id] || !urlDatabase[id].longURL) {
+    return res.status(403).send("Access denied");
+  }
 
   if (!urlDatabase[id]) {
     res.status(404).send("tinyApp URL does not exist");
-  } else if (user.id !== user_id) {
-    return res.status(400).send("invalid user");
-  } else if (urlDatabase[id].userID !== user_id) {
-    res.status(403).send("Access Denied");
-  } else {
-    const templateVars = {
-      user,
-      id,
-      longURL
-    };
-    res.render("urls_show", templateVars);
   }
+
+  if (user.id !== user_id || urlDatabase[id].userID !== user_id) {
+    return res.status(403).send("Access denied");
+  }
+
+  const templateVars = {
+    user,
+    id,
+    longURL
+  };
+
+  res.render("urls_show", templateVars);
+
 });
 
 /*
@@ -242,14 +257,15 @@ urls index manage & requests (edit / delete)
  */
 app.post("/urls", (req, res) => {
   const user_id = req.session.user_id;
-
   if (!user_id) {
     return res.status(401).send("You must be logged in to manage tinyUrls");
-  } else {
-    const shortURL = generateRandomString();
-    urlDatabase[shortURL] = { longURL: req.body["longURL"], userID: user_id };
-    res.redirect(`/urls`);
   }
+
+  const shortURL = generateRandomString();
+
+  urlDatabase[shortURL] = { longURL: req.body["longURL"], userID: user_id };
+
+  res.redirect(`/urls`);
 
 });
 
@@ -258,7 +274,7 @@ app.post("/urls", (req, res) => {
  */
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;
-  if (!urlDatabase[shortURL]) {
+  if (!shortURL || !urlDatabase[shortURL]) {
     return res.status(404).send("This tinyUrl does not exist");
   }
 
@@ -276,17 +292,27 @@ shortURL delete request
  */
 app.post("/urls/:id/delete", (req, res) => {
   const user_id = req.session.user_id;
-  const id = req.params.id;
-  const user = database[user_id];
-
   if (!user_id) {
     return res.status(400).send("Please login");
-  } else if (user.id !== user_id) {
-    return res.status(400).send("invalid user");
-  } else {
-    delete urlDatabase[id];
-    res.redirect("/urls");
   }
+
+  const id = req.params.id;
+  if (!id) {
+    return res.status(404).send("This tinyUrl does not exist");
+  }
+
+  const user = database[user_id];
+  if (!user) {
+    return res.status(403).send("Access denied");
+  }
+
+  if (user.id !== user_id) {
+    return res.status(400).send("invalid user");
+  }
+
+  delete urlDatabase[id];
+
+  res.redirect("/urls");
 
 });
 
@@ -295,16 +321,24 @@ app.post("/urls/:id/delete", (req, res) => {
  */
 app.post("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
-  const user = database[user_id];
-  const shortURL = req.params.id;
-  const updatedURL = req.body.updatedURL;
-  urlDatabase[shortURL].longURL = updatedURL;
+  if (!user_id) {
+    return res.status(400).send("Please login");
+  }
 
-  if (user_id !== req.session.user_id) {
-    return res.status(400).send("Please login to tinyApp");
-  } else if (user.id !== req.session.user_id) {
+  const user = database[user_id];
+  if (!user) {
+    return res.status(403).send("Access denied");
+  }
+
+  if (user.id !== user_id) {
     return res.status(400).send("invalid user");
   }
+
+  const shortURL = req.params.id;
+  const updatedURL = req.body.updatedURL;
+
+  urlDatabase[shortURL].longURL = updatedURL;
+
   res.redirect("/urls");
 
 });
