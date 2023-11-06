@@ -122,7 +122,6 @@ app.post("/register", (req, res) => {
 
   database[id] = user
 
-  console.log(database)
   req.session.user_id = user.id;
   res.redirect('/urls');
 
@@ -203,7 +202,6 @@ app.get("/urls/new", (req, res) => {
 
   if (!user_id) {
     res.redirect('/login');
-    return res.status(400).send("Please login");
   } else if (user.id !== req.session.user_id) {
     return res.status(400).send("invalid user");
   } else {
