@@ -226,16 +226,12 @@ app.get("/urls/:id", (req, res) => {
 
   const userUrls = urlsForUser(user_id, urlDatabase);
   if (!userUrls[id]) {
-    return res.status(403).send("Access denied");
+    return res.status(404).send("tinyURL does not exist");
   }
 
   const longURL = userUrls[id].longURL;
-  if (!userUrls[id] || !urlDatabase[id].longURL) {
+  if (!urlDatabase[id].longURL) {
     return res.status(403).send("Access denied");
-  }
-
-  if (!urlDatabase[id]) {
-    res.status(404).send("tinyApp URL does not exist");
   }
 
   if (user.id !== user_id || urlDatabase[id].userID !== user_id) {
