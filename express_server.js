@@ -218,20 +218,24 @@ app.get("/urls/new", (req, res) => {
  */
 app.get("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
+  const id = req.params.id;
   const userUrls = urlsForUser(user_id);
   const user = database[user_id];
+  const longURL = userUrls[id].longURL;
 
   if (!user_id) {
     return res.status(400).send("Please login");
+  } else if (!urlDatabase[id]) {
+    res.status(404).send("tinyApp URL does not exist");
   } else if (user.id !== req.session.user_id) {
     return res.status(400).send("invalid user");
-  } else if (urlDatabase[req.params.id].userID !== user_id) {
-    res.status(400).send("The url does not belong to you")
+  } else if (urlDatabase[id].userID !== user_id) {
+    res.status(400).send("The url does not belong to you");
   } else {
     const templateVars = {
       user,
-      id: req.params.id,
-      longURL: userUrls[req.params.id].longURL
+      id,
+      longURL
     };
     res.render("urls_show", templateVars);
   }
